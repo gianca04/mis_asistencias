@@ -99,3 +99,6 @@ php artisan shield:generate --all
 
 publicar vistas: 
 php artisan shield:publish dashboard
+
+## Creacion de interfaz de Usuario y resources
+php artisan make:filament-resource User --generate
