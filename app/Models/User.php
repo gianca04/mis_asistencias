@@ -8,7 +8,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -21,8 +20,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'apellido',
+        'dni',
+        'foto',
         'email',
         'password',
+
     ];
 
     /**
@@ -47,4 +50,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+        public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
+    }
+
+        public function getFullNameAttribute(): string
+    {
+        return $this->name . ' ' . $this->apellido;
+    }
+
 }

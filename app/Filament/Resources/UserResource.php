@@ -38,8 +38,7 @@ class UserResource extends Resource
 
                         Forms\Components\TextInput::make('apellido')
                             ->required()
-                            ->regex('/^[A-Za-z\s]+$/')
-                            ->alpha()
+                            ->regex('/^[a-zA-Z\s]+$/')
                             ->maxLength(255)
                             ->label('Apellido')
                             ->prefixIcon('heroicon-s-user-circle'),
