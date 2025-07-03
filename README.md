@@ -64,3 +64,38 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+Comandos para instalación y configuración inicial:
+
+Comandos ejectuados en laravel:
+Creación de proyecto:
+composer create-project --prefer-dist laravel/laravel mis_asistencias "11.*" 
+Instalación de fialmentphp:
+composer require filament/filament
+Creación de panel administrativo:
+php artisan filament:install --panels
+> dashboard
+
+creación de ususario administrador:
+php artisan make:filament-user
+
+
+Instalación de libreria para seguridad shield:
+composer require bezhansalleh/filament-shield
+
+Configuración de provider:
+php artisan vendor:publish --tag="filament-shield-config"
+
+setup de laravel shield
+
+php artisan shield:setup
+
+Creación de super ususario:
+php artisan shield:super-admin
+
+creación de vistas adminsitrativas (ejecutar cada vez que se agregue una nueva vista:
+php artisan shield:generate --all
+
+publicar vistas: 
+php artisan shield:publish dashboard
