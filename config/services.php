@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Variable de microservicio de reconocimiento facial
+    'face_service' => [
+        'url' => env('FACE_SERVICE_URL'),
+    ],
+
 ];
