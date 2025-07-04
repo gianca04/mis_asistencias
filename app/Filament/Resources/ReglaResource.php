@@ -31,7 +31,7 @@ class ReglaResource extends Resource
     {
         return [
             'Nombre' => $record->name,
-            'Reglas' => $record->hora_entrada . ' ' . $record->hora_tardanza,
+            'Reglas' => $record->hora_entrada . ' - ' . $record->hora_tardanza,
 
         ];
     }
@@ -101,16 +101,19 @@ class ReglaResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->sortable()
+                    ->searchable()
                     ->label('Nombre de la Regla')
                     ->tooltip('Nombre de la regla asignada'),
 
                 TextColumn::make('hora_entrada')
                     ->badge()
+                    ->searchable()
                     ->color('success')
                     ->tooltip('Hora de entrada del estudiante.'),
 
                 TextColumn::make('hora_tardanza')
                     ->badge()
+                    ->searchable()
                     ->color('danger')
                     ->tooltip('Hora límite para llegar tarde sin justificación.'),
 
