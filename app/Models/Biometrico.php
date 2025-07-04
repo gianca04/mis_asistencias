@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\Api\BiometricoController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -58,34 +57,74 @@ class Biometrico extends Model
     {
         parent::boot();
 
-        // Cuando un nuevo biométrico es creado, registrar rostro automáticamente
+        // Cuando un nuevo biométrico es creado, procesar rostro automáticamente
         static::created(function ($biometrico) {
-            // Instanciamos el controlador
-            $biometricoController = new BiometricoController();
-
-            // Ruta correcta de la imagen
-            $fotoFrontalPath = storage_path('app/public/' . $biometrico->foto_frontal);
-
-            // Verificamos que la imagen exista
-            if (!file_exists($fotoFrontalPath)) {
-                Log::error('La imagen del rostro no existe en la ruta: ' . $fotoFrontalPath);
-                return;
-            }
-
-            // Simulamos la petición para registrar el rostro
-            $request = request()->merge([
-                'estudiante_id' => $biometrico->estudiante_id,
-                'foto_frontal' => $fotoFrontalPath // Ruta completa de la imagen almacenada
-            ]);
-
-            // Llamamos al método registrarRostro
-            try {
-                // Usamos el controlador para registrar el rostro
-                $biometricoController->registrarRostro($request);
-            } catch (\Exception $e) {
-                Log::error('Error al registrar el rostro automáticamente: ' . $e->getMessage());
+            // Solo procesar si tiene foto_frontal
+            if ($biometrico->foto_frontal) {
+                try {
+                    $biometrico->procesarModeloFacial();
+                } catch (\Exception $e) {
+                    Log::error('Error al procesar modelo facial en creación: ' . $e->getMessage());
+                }
             }
         });
+
+        // Cuando un biométrico es actualizado, verificar si cambió la foto_frontal
+        static::updated(function ($biometrico) {
+            // Verificar si la foto_frontal fue modificada
+            if ($biometrico->wasChanged('foto_frontal') && $biometrico->foto_frontal) {
+                try {
+                    $biometrico->procesarModeloFacial();
+                    Log::info("Modelo facial actualizado para biométrico ID: {$biometrico->id}");
+                } catch (\Exception $e) {
+                    Log::error('Error al procesar modelo facial en actualización: ' . $e->getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * Procesa el modelo facial para este biométrico
+     */
+    public function procesarModeloFacial()
+    {
+        // Construir la ruta completa de la imagen
+        $fotoFrontalPath = storage_path('app/public/' . $this->foto_frontal);
+
+        // Verificar que la imagen exista
+        if (!file_exists($fotoFrontalPath)) {
+            Log::error('La imagen del rostro no existe en la ruta: ' . $fotoFrontalPath);
+            throw new \Exception('Imagen no encontrada: ' . $fotoFrontalPath);
+        }
+
+        // Llamar al microservicio Flask para obtener el encoding
+        $response = \Illuminate\Support\Facades\Http::attach(
+            'file',
+            file_get_contents($fotoFrontalPath),
+            basename($fotoFrontalPath)
+        )->timeout(10)->post(env('FACE_SERVICE_URL') . '/encoding');
+
+        if (!$response->ok()) {
+            Log::error('Error al comunicarse con el microservicio Flask.', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            throw new \Exception('Error al comunicarse con el microservicio Flask');
+        }
+
+        $encoding = $response->json('encoding');
+
+        if (!$encoding) {
+            Log::warning("Encoding no retornado desde Flask", ['response' => $response->json()]);
+            throw new \Exception('No se obtuvo encoding válido del microservicio');
+        }
+
+        // Actualizar el modelo facial
+        $this->update(['modelo_facial' => $encoding]);
+
+        Log::info("Modelo facial procesado exitosamente para biométrico ID: {$this->id}");
+
+        return $encoding;
     }
 
 
