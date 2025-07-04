@@ -82,6 +82,11 @@ class DashboardPanelProvider extends PanelProvider
                 ]
             ])
 
+            ->brandLogo(asset('img/logo.png'))
+            ->brandLogoHeight('4rem')
+            ->favicon(asset('img/favicon.png'))
+
+
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ]);
