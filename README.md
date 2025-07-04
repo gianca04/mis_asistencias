@@ -7,142 +7,92 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Comandos para instalación y configuración inicial
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Creación de proyecto
+```bash
+composer create-project --prefer-dist laravel/laravel mis_asistencias "11.*"
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
-
-Comandos para instalación y configuración inicial:
-
-Comandos ejectuados en laravel:
-Creación de proyecto:
-composer create-project --prefer-dist laravel/laravel mis_asistencias "11.*" 
-Instalación de fialmentphp:
+### Instalación de FilamentPHP
+```bash
 composer require filament/filament
-Creación de panel administrativo:
+```
+
+### Creación de panel administrativo
+```bash
 php artisan filament:install --panels
+```
 > dashboard
 
-creación de ususario administrador:
+### Creación de usuario administrador
+```bash
 php artisan make:filament-user
+```
 
-
-Instalación de libreria para seguridad shield:
+### Instalación de librería para seguridad Shield
+```bash
 composer require bezhansalleh/filament-shield
-
-Configuración de provider:
 php artisan vendor:publish --tag="filament-shield-config"
-
-setup de laravel shield
-
 php artisan shield:setup
-
-Creación de super ususario:
 php artisan shield:super-admin
-
-creación de vistas adminsitrativas (ejecutar cada vez que se agregue una nueva vista:
 php artisan shield:generate --all
-
-publicar vistas: 
 php artisan shield:publish dashboard
+```
 
-## Creacion de interfaz de Usuario y resources
+### Creación de interfaz de Usuario y Resources
+```bash
 php artisan make:filament-resource User --generate
+```
 
-## Generamos carpeta para almacenar archivos:
+### Generar carpeta para almacenar archivos
+```bash
 php artisan storage:link
+```
 
-## Creamos resource de Reglas
-
+### Crear Resource de Reglas
+```bash
 php artisan make:filament-resource Regla --generate
+```
 
-## Creamos resource de Matricula
-
+### Crear Resource de Matrícula
+```bash
 php artisan make:filament-resource Matricula --generate
+```
 
-
-## Creamos relationmangager para el formulario de matriculas, donde podre visualizar a los estudiantes de esa matricula.
-
+### Crear RelationManager para el formulario de matrículas
+```bash
 php artisan make:filament-resource Matricula --generate
+```
 
-## Instalación de libreria para filtrar por rango de fechas: 
+### Instalación de librería para filtrar por rango de fechas
+```bash
 composer require malzariey/filament-daterangepicker-filter
-
 php artisan vendor:publish --tag="filament-daterangepicker-filter-translations"
-
 php artisan vendor:publish --tag="filament-daterangepicker-filter-views"
+```
+Documentación: [Malzariey Daterangepicker Filter](https://filamentphp.com/plugins/malzariey-daterangepicker-filter#time-picker)
 
-Documentación: https://filamentphp.com/plugins/malzariey-daterangepicker-filter#time-picker
-
-## INSTALACION DE LIBRERIA  pxlrbt/filament-excel
-
-HABILITAMOS LA EXTENSIÓN
-extension=gd
-
+### Instalación de librería pxlrbt/filament-excel
+```bash
 composer require pxlrbt/filament-excel
+```
+Habilitar extensión GD:
+```bash
+extension=gd
+```
+Documentación: [Filament Excel](https://filamentphp.com/plugins/pxlrbt-excel)
 
-Documentación: https://filamentphp.com/plugins/pxlrbt-excel
-
-## MEJORAR RENDIMIENTO
+### Mejorar rendimiento
+```bash
 php artisan vendor:publish --force --tag=livewire:assets
+```
 
-# COMANDOS PARA PROYECTO:
+### Comandos para ejecutar el proyecto
+```bash
 php artisan serve --host 0.0.0.0
 npm run dev
+```
 
 
 
