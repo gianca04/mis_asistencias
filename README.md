@@ -106,3 +106,6 @@ php artisan make:filament-resource User --generate
 ## Generamos carpeta para almacenar archivos:
 php artisan storage:link
 
+## Creamos resource de Reglas
+
+php artisan make:filament-resource Regla --generate

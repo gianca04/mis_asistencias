@@ -31,8 +31,8 @@ class UserResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            'Correo' => $record->nombre . ' ' . $record->apellido,
-            'Nombre' => $record->dni,
+            'Nombres' => $record->nombre . ' ' . $record->apellido,
+            'DNI' => $record->dni,
         ];
     }
     public static function getGlobalSearchEloquentQuery(): Builder
@@ -158,11 +158,21 @@ class UserResource extends Resource
                     ->placeholder('Todos los roles'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-o-eye')
+                    ->color('info'),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('primary'),
+                Tables\Actions\DeleteAction::make()
+                    ->icon('heroicon-o-trash')
+                    ->color('danger'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
                 ]),
             ]);
     }
