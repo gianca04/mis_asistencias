@@ -53,9 +53,6 @@ class MatriculaResource extends Resource
                                     })
                                     ->get()
                                     ->pluck('nombre', 'id');
-                            })
-                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                static::actualizarCodigoMatricula($set, $get);
                             }),
 
                         Forms\Components\Select::make('seccion_id')
@@ -70,9 +67,6 @@ class MatriculaResource extends Resource
                                     })
                                     ->get()
                                     ->pluck('nombre', 'id');
-                            })
-                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                static::actualizarCodigoMatricula($set, $get);
                             }),
 
                         Forms\Components\TextInput::make('anio_escolar')
@@ -87,16 +81,8 @@ class MatriculaResource extends Resource
 
                         Forms\Components\TextInput::make('codigo_matricula')
                             ->label('Código de Matrícula')
-                            ->required()
                             ->maxLength(255)
-                            ->disabled()
-                            ->default(function (callable $get) {
-                                $anioEscolar = $get('anio_escolar') ?? Carbon::now()->year;
-                                $gradoId = $get('grado_id');
-                                $seccionId = $get('seccion_id');
-                                return $anioEscolar . $gradoId . $seccionId;
-                            }),
-
+                            ->readonly(),
                     ]),
 
                 // Sección 2: Selección de Regla (1 columna)

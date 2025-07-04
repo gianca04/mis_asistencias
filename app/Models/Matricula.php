@@ -100,4 +100,39 @@ class Matricula extends Model
     {
         return $this->belongsToMany(Estudiante::class, 'estudiante_matricula', 'matricula_id', 'estudiante_id');
     }
+
+    // En el modelo Matricula.php
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($matricula) {
+            if ($matricula->grado_id && $matricula->seccion_id && $matricula->anio_escolar) {
+                $matricula->codigo_matricula = $matricula->generateCodigoMatricula();
+            } else {
+                throw new \Exception('Faltan datos para generar el código de matrícula.');
+            }
+        });
+
+        static::updating(function ($matricula) {
+            if ($matricula->grado_id && $matricula->seccion_id && $matricula->anio_escolar) {
+                $matricula->codigo_matricula = $matricula->generateCodigoMatricula();
+            } else {
+                throw new \Exception('Faltan datos para generar el código de matrícula.');
+            }
+        });
+    }
+
+    public function generateCodigoMatricula()
+    {
+        $grado = $this->grado_id;
+        $seccion = $this->seccion_id ? Seccion::find($this->seccion_id)?->nombre : '';
+        $anioEscolar = $this->anio_escolar ?? now()->year;
+
+        if (!$grado || !$seccion || !$anioEscolar) {
+            throw new \Exception('Faltan datos para generar el código de matrícula.');
+        }
+
+        return $anioEscolar . strtoupper($grado) . strtoupper($seccion);
+    }
 }

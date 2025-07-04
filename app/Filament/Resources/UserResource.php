@@ -90,6 +90,18 @@ class UserResource extends Resource
                     ])
                     ->columns(2),
 
+
+                Forms\Components\Section::make('Foto de Perfil')
+                    ->schema([
+                        Forms\Components\FileUpload::make('foto')
+                            ->label('Foto de Perfil')
+                            ->imageEditor()
+                            ->image()
+                            ->imageCropAspectRatio('1:1')
+                            ->helperText('Sube una foto de perfil de formato adecuado.')
+                            ->directory('uploads/users'),
+                    ]),
+
                 Forms\Components\Section::make('Permisos y Rol')
                     ->description('Configuración de roles y permisos.')
                     ->schema([
@@ -102,16 +114,6 @@ class UserResource extends Resource
                             ->helperText('Selecciona los roles que este usuario tendrá.'),
                     ]),
 
-                Forms\Components\Section::make('Foto de Perfil')
-                    ->schema([
-                        Forms\Components\FileUpload::make('foto')
-                            ->label('Foto de Perfil')
-                            ->imageEditor()
-                            ->image()
-                            ->imageCropAspectRatio('1:1')
-                            ->helperText('Sube una foto de perfil de formato adecuado.')
-                            ->directory('uploads/users'),
-                    ]),
             ]);
     }
 
