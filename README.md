@@ -109,3 +109,28 @@ php artisan storage:link
 ## Creamos resource de Reglas
 
 php artisan make:filament-resource Regla --generate
+
+## Creamos resource de Matricula
+
+php artisan make:filament-resource Matricula --generate
+
+
+## Creamos relationmangager para el formulario de matriculas, donde podre visualizar a los estudiantes de esa matricula.
+
+php artisan make:filament-resource Matricula --generate
+
+## Instalación de libreria para filtrar por rango de fechas: 
+composer require malzariey/filament-daterangepicker-filter
+
+php artisan vendor:publish --tag="filament-daterangepicker-filter-translations"
+
+php artisan vendor:publish --tag="filament-daterangepicker-filter-views"
+
+## INSTALACION DE LIBRERIA  pxlrbt/filament-excel
+
+HABILITAMOS LA EXTENSIÓN
+extension=gd
+
+composer require pxlrbt/filament-excel
+
+
