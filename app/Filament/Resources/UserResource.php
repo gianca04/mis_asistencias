@@ -12,6 +12,7 @@ use Illuminate\Validation\Rules\Unique;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
@@ -21,6 +22,24 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
     protected static ?string $modelLabel = 'Usuario';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email', 'apellido', 'dni'];  // Cambia 'nombre' por 'name' si es el nombre correcto en la base de datos
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Correo' => $record->nombre . ' ' . $record->apellido,
+            'Nombre' => $record->dni,
+        ];
+    }
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        // Optimiza la consulta, asegurando que solo cargue lo necesario
+        return parent::getGlobalSearchEloquentQuery(); // Elimina la relación inexistente 'user'
+    }
 
     public static function form(Form $form): Form
     {
@@ -102,15 +121,26 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('apellido')
+                    ->label('Apellido')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('dni')
+                    ->label('DNI')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Rol asignado')
+                    ->searchable()
+                    ->badge(),
+
                 Tables\Columns\ImageColumn::make('foto')
+                    ->label('Fotografia')
                     ->searchable()
                     ->circular(),
+
                 Tables\Columns\TextColumn::make('email')
+                    ->label('Correo electronico')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -122,7 +152,10 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('roles')
+                    ->relationship('roles', 'name')
+                    ->label('Filtrar por Rol')
+                    ->placeholder('Todos los roles'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
