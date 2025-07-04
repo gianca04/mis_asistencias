@@ -126,11 +126,23 @@ php artisan vendor:publish --tag="filament-daterangepicker-filter-translations"
 
 php artisan vendor:publish --tag="filament-daterangepicker-filter-views"
 
+Documentación: https://filamentphp.com/plugins/malzariey-daterangepicker-filter#time-picker
+
 ## INSTALACION DE LIBRERIA  pxlrbt/filament-excel
 
 HABILITAMOS LA EXTENSIÓN
 extension=gd
 
 composer require pxlrbt/filament-excel
+
+Documentación: https://filamentphp.com/plugins/pxlrbt-excel
+
+## MEJORAR RENDIMIENTO
+php artisan vendor:publish --force --tag=livewire:assets
+
+# COMANDOS PARA PROYECTO:
+php artisan serve --host 0.0.0.0
+npm run dev
+
 
 

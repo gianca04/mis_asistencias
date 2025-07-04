@@ -15,7 +15,6 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
 
 class ReglaResource extends Resource
 {
@@ -135,7 +134,6 @@ class ReglaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                DateRangeFilter::make('created_at')->timePicker()
 
                 // Puedes agregar filtros si es necesario
             ])
