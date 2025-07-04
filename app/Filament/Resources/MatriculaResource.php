@@ -27,9 +27,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 class MatriculaResource extends Resource
 {
     //use Translatable;
-    //protected static ?string $pluralModelLabel = 'Clientes';
-
-    //protected static ?string $modelLabel = 'Cliente';
     protected static ?string $model = Matricula::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
@@ -266,7 +263,7 @@ class MatriculaResource extends Resource
     {
         return [
             //
-            //EstudiantesRelationManager::class
+            EstudiantesRelationManager::class
         ];
     }
 
