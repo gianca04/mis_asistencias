@@ -14,6 +14,11 @@ class ListAsistencias extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\Action::make('registroMasivo')
+                ->label('Registro Masivo')
+                ->icon('heroicon-o-user-group')
+                ->color('info')
+                ->url(fn (): string => static::$resource::getUrl('registro-masivo')),
         ];
     }
 }

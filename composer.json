@@ -11,6 +11,7 @@
         "filament/filament": "^3.3",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
+        "maatwebsite/excel": "^3.1",
         "malzariey/filament-daterangepicker-filter": "^4.0",
         "pxlrbt/filament-excel": "^2.4"
     },

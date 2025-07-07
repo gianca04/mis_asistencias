@@ -101,6 +101,17 @@ class Matricula extends Model
         return $this->belongsToMany(Estudiante::class, 'estudiante_matricula', 'matricula_id', 'estudiante_id');
     }
 
+    /**
+     * Relación con el modelo Asistencia.
+     * Una matrícula tiene muchas asistencias.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function asistencias()
+    {
+        return $this->hasMany(Asistencia::class);
+    }
+
     // En el modelo Matricula.php
     protected static function boot()
     {

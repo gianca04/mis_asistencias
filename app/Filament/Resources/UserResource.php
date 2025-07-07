@@ -49,7 +49,6 @@ class UserResource extends Resource
                     ->description('Datos básicos del usuario.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->regex('/^[A-Za-z\s]+$/')
                             ->required()
                             ->maxLength(255)
                             ->label('Nombre')

@@ -171,6 +171,22 @@ class EstudianteResource extends Resource
                         });
                     }),
 
+                Tables\Filters\SelectFilter::make('seccion_id')
+                    ->label('Sección')
+                    ->options(function () {
+                        return Seccion::orderBy('nombre')->pluck('nombre', 'id')->toArray();
+                    })
+                    ->query(function ($query, $data) {
+                        if (!filled($data['value'])) {
+                            return $query; // No aplicar filtro si no hay valor seleccionado
+                        }
+
+                        return $query->whereHas('matriculas', function ($q) use ($data) {
+                            $q->where('seccion_id', $data['value']);
+                        });
+                    }),
+
+
 
             ])
             ->actions([

@@ -93,8 +93,19 @@ class AsistenciaResource extends Resource
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('matricula.codigo_matricula')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Código Matrícula')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('matricula.grado.nombre')
+                    ->label('Grado')
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('matricula.seccion.nombre')
+                    ->label('Sección')
+                    ->sortable()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('fecha')
                     ->label('Fecha') // Etiqueta en español
@@ -111,7 +122,23 @@ class AsistenciaResource extends Resource
                     ->weight(5), // Peso de la columna
 
 
-                Tables\Columns\TextColumn::make('estado'),
+                Tables\Columns\TextColumn::make('estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'presente' => 'success',
+                        'tardanza' => 'warning',
+                        'falta' => 'danger',
+                        'justificado' => 'info',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'presente' => 'Presente',
+                        'tardanza' => 'Tardanza',
+                        'falta' => 'Falta',
+                        'justificado' => 'Justificado',
+                        default => $state,
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -169,7 +196,7 @@ class AsistenciaResource extends Resource
                             return $query; // No aplicar filtro si no hay valor seleccionado
                         }
 
-                        return $query->whereHas('matriculas', function ($q) use ($data) {
+                        return $query->whereHas('matricula', function ($q) use ($data) {
                             $q->where('grado_id', $data['value']);
                         });
                     }),
@@ -183,7 +210,7 @@ class AsistenciaResource extends Resource
                             return $query; // No aplicar filtro si no hay valor seleccionado
                         }
 
-                        return $query->whereHas('matriculas', function ($q) use ($data) {
+                        return $query->whereHas('matricula', function ($q) use ($data) {
                             $q->where('seccion_id', $data['value']);
                         });
                     }),
@@ -203,6 +230,232 @@ class AsistenciaResource extends Resource
 
 
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('registroMasivo')
+                    ->label('Registro Rápido por Matrícula')
+                    ->icon('heroicon-o-user-group')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Select::make('matricula_id')
+                            ->label('Matrícula (Salón)')
+                            ->required()
+                            ->searchable()
+                            ->options(function () {
+                                return Matricula::with(['grado', 'seccion'])
+                                    ->get()
+                                    ->mapWithKeys(function ($matricula) {
+                                        $label = $matricula->grado->nombre . ' - ' .
+                                               $matricula->seccion->nombre . ' (' .
+                                               $matricula->anio_escolar . ')';
+                                        return [$matricula->id => $label];
+                                    })
+                                    ->toArray();
+                            })
+                            ->placeholder('Selecciona un salón')
+                            ->helperText('Selecciona la matrícula (salón) para registrar asistencias masivas'),
+
+                        Forms\Components\DatePicker::make('fecha')
+                            ->label('Fecha')
+                            ->required()
+                            ->default(now())
+                            ->helperText('Fecha para la cual se registrarán las asistencias'),
+
+                        Forms\Components\Select::make('estado_por_defecto')
+                            ->label('Estado por defecto')
+                            ->required()
+                            ->options([
+                                'presente' => 'Presente',
+                                'tardanza' => 'Tardanza',
+                                'falta' => 'Falta',
+                                'justificado' => 'Justificado'
+                            ])
+                            ->default('presente')
+                            ->helperText('Estado que se asignará a todos los estudiantes'),
+
+                        Forms\Components\Textarea::make('comentario')
+                            ->label('Comentario general')
+                            ->helperText('Comentario que se aplicará a todos los registros (opcional)')
+                            ->columnSpanFull(),
+                    ])
+                    ->action(function (array $data) {
+                        $matricula = Matricula::with('estudiantes')->find($data['matricula_id']);
+
+                        if (!$matricula || $matricula->estudiantes->isEmpty()) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Error')
+                                ->body('No se encontraron estudiantes en esta matrícula.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $registrosCreados = 0;
+                        $registrosExistentes = 0;
+
+                        foreach ($matricula->estudiantes as $estudiante) {
+                            // Verificar si ya existe un registro para este estudiante en esta fecha
+                            $existeAsistencia = Asistencia::where('estudiante_id', $estudiante->id)
+                                ->where('matricula_id', $data['matricula_id'])
+                                ->whereDate('fecha', $data['fecha'])
+                                ->exists();
+
+                            if (!$existeAsistencia) {
+                                Asistencia::create([
+                                    'estudiante_id' => $estudiante->id,
+                                    'matricula_id' => $data['matricula_id'],
+                                    'fecha' => $data['fecha'],
+                                    'estado' => $data['estado_por_defecto'],
+                                    'comentario' => $data['comentario'] ?? null,
+                                ]);
+                                $registrosCreados++;
+                            } else {
+                                $registrosExistentes++;
+                            }
+                        }
+
+                        $mensaje = "Se crearon {$registrosCreados} registros de asistencia.";
+                        if ($registrosExistentes > 0) {
+                            $mensaje .= " {$registrosExistentes} estudiantes ya tenían registro para esta fecha.";
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Registro masivo completado')
+                            ->body($mensaje)
+                            ->success()
+                            ->send();
+                    })
+                    ->modalHeading('Registro Rápido por Matrícula')
+                    ->modalDescription('Registra asistencias para todos los estudiantes de una matrícula específica.')
+                    ->modalSubmitActionLabel('Registrar Asistencias')
+                    ->modalWidth('lg'),
+
+                Tables\Actions\Action::make('registroMasivoPorGradoSeccion')
+                    ->label('Registro por Grado y Sección')
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\Select::make('grado_id')
+                            ->label('Grado')
+                            ->required()
+                            ->searchable()
+                            ->options(function () {
+                                return Grado::orderBy('nombre')->pluck('nombre', 'id')->toArray();
+                            })
+                            ->reactive()
+                            ->placeholder('Selecciona un grado'),
+
+                        Forms\Components\Select::make('seccion_id')
+                            ->label('Sección')
+                            ->required()
+                            ->searchable()
+                            ->options(function () {
+                                return Seccion::orderBy('nombre')->pluck('nombre', 'id')->toArray();
+                            })
+                            ->placeholder('Selecciona una sección'),
+
+                        Forms\Components\Select::make('anio_escolar')
+                            ->label('Año Escolar')
+                            ->required()
+                            ->options(function () {
+                                return Matricula::query()
+                                    ->select('anio_escolar')
+                                    ->distinct()
+                                    ->orderBy('anio_escolar', 'desc')
+                                    ->pluck('anio_escolar', 'anio_escolar')
+                                    ->toArray();
+                            })
+                            ->default(now()->year)
+                            ->placeholder('Selecciona el año escolar'),
+
+                        Forms\Components\DatePicker::make('fecha')
+                            ->label('Fecha')
+                            ->required()
+                            ->default(now())
+                            ->helperText('Fecha para la cual se registrarán las asistencias'),
+
+                        Forms\Components\Select::make('estado_por_defecto')
+                            ->label('Estado por defecto')
+                            ->required()
+                            ->options([
+                                'presente' => 'Presente',
+                                'tardanza' => 'Tardanza',
+                                'falta' => 'Falta',
+                                'justificado' => 'Justificado'
+                            ])
+                            ->default('presente')
+                            ->helperText('Estado que se asignará a todos los estudiantes'),
+
+                        Forms\Components\Textarea::make('comentario')
+                            ->label('Comentario general')
+                            ->helperText('Comentario que se aplicará a todos los registros (opcional)')
+                            ->columnSpanFull(),
+                    ])
+                    ->action(function (array $data) {
+                        // Buscar la matrícula que coincida con grado, sección y año escolar
+                        $matricula = Matricula::where('grado_id', $data['grado_id'])
+                            ->where('seccion_id', $data['seccion_id'])
+                            ->where('anio_escolar', $data['anio_escolar'])
+                            ->with('estudiantes')
+                            ->first();
+
+                        if (!$matricula) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Error')
+                                ->body('No se encontró una matrícula que coincida con los criterios seleccionados.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        if ($matricula->estudiantes->isEmpty()) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Error')
+                                ->body('No hay estudiantes matriculados en este grado y sección.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $registrosCreados = 0;
+                        $registrosExistentes = 0;
+
+                        foreach ($matricula->estudiantes as $estudiante) {
+                            // Verificar si ya existe un registro para este estudiante en esta fecha
+                            $existeAsistencia = Asistencia::where('estudiante_id', $estudiante->id)
+                                ->where('matricula_id', $matricula->id)
+                                ->whereDate('fecha', $data['fecha'])
+                                ->exists();
+
+                            if (!$existeAsistencia) {
+                                Asistencia::create([
+                                    'estudiante_id' => $estudiante->id,
+                                    'matricula_id' => $matricula->id,
+                                    'fecha' => $data['fecha'],
+                                    'estado' => $data['estado_por_defecto'],
+                                    'comentario' => $data['comentario'] ?? null,
+                                ]);
+                                $registrosCreados++;
+                            } else {
+                                $registrosExistentes++;
+                            }
+                        }
+
+                        $mensaje = "Se crearon {$registrosCreados} registros de asistencia.";
+                        if ($registrosExistentes > 0) {
+                            $mensaje .= " {$registrosExistentes} estudiantes ya tenían registro para esta fecha.";
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Registro masivo completado')
+                            ->body($mensaje)
+                            ->success()
+                            ->send();
+                    })
+                    ->modalHeading('Registro Masivo por Grado y Sección')
+                    ->modalDescription('Registra asistencias para todos los estudiantes de un grado y sección específicos.')
+                    ->modalSubmitActionLabel('Registrar Asistencias')
+                    ->modalWidth('lg'),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -212,18 +465,60 @@ class AsistenciaResource extends Resource
                 Tables\Actions\BulkAction::make('marcarComoFalto')
                     ->label('Marcar como Faltó')
                     ->icon('heroicon-o-x-circle')
+                    ->color('danger')
                     ->action(fn($records) => $records->each->update([
                         'estado' => 'falta',
-                        'fecha' => now(),
-                    ])),
+                    ]))
+                    ->deselectRecordsAfterCompletion()
+                    ->requiresConfirmation()
+                    ->modalHeading('Marcar como Faltó')
+                    ->modalDescription('¿Estás seguro de que quieres marcar las asistencias seleccionadas como "Falta"?'),
 
                 Tables\Actions\BulkAction::make('marcarComoPresente')
-                    ->label('Marcar como presente')
-                    ->icon('heroicon-o-x-circle')
+                    ->label('Marcar como Presente')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
                     ->action(fn($records) => $records->each->update([
                         'estado' => 'presente',
-                        'fecha' => now(),
-                    ])),
+                    ]))
+                    ->deselectRecordsAfterCompletion()
+                    ->requiresConfirmation()
+                    ->modalHeading('Marcar como Presente')
+                    ->modalDescription('¿Estás seguro de que quieres marcar las asistencias seleccionadas como "Presente"?'),
+
+                Tables\Actions\BulkAction::make('marcarComoTardanza')
+                    ->label('Marcar como Tardanza')
+                    ->icon('heroicon-o-clock')
+                    ->color('warning')
+                    ->action(fn($records) => $records->each->update([
+                        'estado' => 'tardanza',
+                    ]))
+                    ->deselectRecordsAfterCompletion()
+                    ->requiresConfirmation()
+                    ->modalHeading('Marcar como Tardanza')
+                    ->modalDescription('¿Estás seguro de que quieres marcar las asistencias seleccionadas como "Tardanza"?'),
+
+                Tables\Actions\BulkAction::make('marcarComoJustificado')
+                    ->label('Marcar como Justificado')
+                    ->icon('heroicon-o-document-check')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\Textarea::make('comentario')
+                            ->label('Comentario de justificación')
+                            ->required()
+                            ->placeholder('Ingresa el motivo de la justificación...')
+                            ->helperText('Este comentario se agregará a todos los registros seleccionados.')
+                    ])
+                    ->action(function ($records, array $data) {
+                        $records->each->update([
+                            'estado' => 'justificado',
+                            'comentario' => $data['comentario'],
+                        ]);
+                    })
+                    ->deselectRecordsAfterCompletion()
+                    ->modalHeading('Marcar como Justificado')
+                    ->modalDescription('Marca las asistencias seleccionadas como justificadas y agrega un comentario.')
+                    ->modalSubmitActionLabel('Justificar Asistencias'),
             ]);
     }
 
@@ -240,6 +535,7 @@ class AsistenciaResource extends Resource
             'index' => Pages\ListAsistencias::route('/'),
             'create' => Pages\CreateAsistencia::route('/create'),
             'edit' => Pages\EditAsistencia::route('/{record}/edit'),
+            'registro-masivo' => Pages\RegistroMasivo::route('/registro-masivo'),
         ];
     }
 }
