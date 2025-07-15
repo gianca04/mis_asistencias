@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\BiometricoController;
+use App\Http\Controllers\Api\CamaraController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AsistenciaController;
 use Illuminate\Support\Facades\Http;
+
+// CAMARAS
+Route::get('/camaras/activas', [CamaraController::class, 'camarasActivas']);
 
 // BIOMETRICOS
 

@@ -93,6 +93,20 @@ class Matricula extends Model
     {
         return strtoupper($this->codigo_matricula);
     }
+
+    /**
+     * Obtener una representación legible de la matrícula
+     *
+     * @return string
+     */
+    public function getDisplayNameAttribute()
+    {
+        $grado = $this->grado?->nombre ?? 'Grado ' . $this->grado_id;
+        $seccion = $this->seccion?->nombre ?? 'Sección ' . $this->seccion_id;
+        $anio = $this->anio_escolar;
+
+        return "{$grado} - {$seccion} ({$anio})";
+    }
     // App\Models\Matricula.php
 
 
@@ -110,6 +124,17 @@ class Matricula extends Model
     public function asistencias()
     {
         return $this->hasMany(Asistencia::class);
+    }
+
+    /**
+     * Relación con el modelo Camara.
+     * Una matrícula puede tener muchas cámaras.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function camaras()
+    {
+        return $this->hasMany(Camara::class);
     }
 
     // En el modelo Matricula.php

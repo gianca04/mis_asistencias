@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Face Recognition Service Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the URL of the face recognition microservice
+    | that handles WebSocket connections and facial recognition processing.
+    |
+    */
+
+    'face_service_url' => env('FACE_SERVICE_URL', 'http://localhost:5000'),
+
 ];
